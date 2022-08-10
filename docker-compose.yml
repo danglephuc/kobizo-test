@@ -1,0 +1,48 @@
+version: "3.7"
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: phucdl-test-img
+    container_name: phucdl-test-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www      
+    networks:
+      - phucdl_test
+
+  mongodb:
+    image: mongo:latest
+    container_name: phucdl-test-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: test
+      MONGO_INITDB_ROOT_PASSWORD: secret
+      MONGO_INITDB_DATABASE: test
+    ports:
+      - 29017:27017
+    volumes:
+      - phucdl_test_mongodb:/data/db
+      - ./.docker/mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - phucdl_test
+
+  nginx:
+    image: nginx:alpine
+    container_name: phucdl-test-nginx
+    restart: unless-stopped
+    ports:
+      - 8100:80
+    volumes:
+      - ./:/var/www
+      - ./.docker/nginx:/etc/nginx/conf.d/
+    networks:
+      - phucdl_test
+
+volumes:  
+  phucdl_test_mongodb:
+networks:
+  phucdl_test:
+    driver: bridge
