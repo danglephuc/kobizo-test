@@ -6,10 +6,12 @@ use App\Document\Post;
 use App\Dto\Request\PostRequest;
 use App\Exception\PostNotFoundException;
 use App\Repository\PostRepository;
+use Doctrine\ODM\MongoDB\LockException;
 use Doctrine\ODM\MongoDB\Mapping\MappingException;
 use Doctrine\ODM\MongoDB\MongoDBException;
 
-class PostManagementService {
+class PostManagementService
+{
 
     private PostRepository $postRepository;
 
@@ -44,8 +46,24 @@ class PostManagementService {
 
     /**
      * @return array
+     * @throws MongoDBException
      */
-    public function getPosts() {
-        return $this->postRepository->findAll();
+    public function getPosts(int $page, int $limit)
+    {
+        return $this->postRepository->getPostsByPage($page, $limit);
+    }
+
+    /**
+     * @throws MappingException
+     * @throws LockException
+     * @throws PostNotFoundException
+     */
+    public function getPost(string $postId)
+    {
+        $post = $this->postRepository->find($postId);
+        if (empty($post)) {
+            throw new PostNotFoundException();
+        }
+        return $post;
     }
 }

@@ -41,6 +41,8 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.8",
+    "axios": "^0.27.2",
+    "dotenv": "^16.0.1",
     "postcss": "^8.4.16",
     "react-router-dom": "^6.3.0",
     "sass": "^1.54.4",

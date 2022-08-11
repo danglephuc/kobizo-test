@@ -1,15 +1,21 @@
-import React, { lazy } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import React from 'react';
+import {Navigate, Route, Routes} from 'react-router-dom';
 import './App.scss';
-
-const ListPost = lazy(() => import('./pages/posts/index'));
+import Navbar from "./components/Navbar";
+import ListPost from "./pages/posts/ListPost";
+import EditPost from "./pages/posts/EditPost";
 
 export const App = () => {
   return (
-      <BrowserRouter basename='/'>
-        <Routes>
-          <Route path='/posts' element={<ListPost />} />
-        </Routes>
-      </BrowserRouter>
+      <>
+          <Navbar />
+          <div className="relative w-full">
+              <Routes>
+                  <Route path="/" element={<Navigate to="/posts" replace />} />
+                  <Route path="/posts" element={<ListPost />} />
+                  <Route path="/posts/:postId" element={<EditPost />}/>
+              </Routes>
+          </div>
+      </>
   );
 }

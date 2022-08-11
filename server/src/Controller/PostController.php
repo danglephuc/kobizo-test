@@ -35,7 +35,10 @@ class PostController extends ApiController
     public function getPostsAction(Request $request)
     {
         try {
-            $data = $this->postManagementService->getPosts();
+            $page = (int)$request->query->get('page', 1);
+            $limit = (int)$request->query->get('limit', 10);
+
+            $data = $this->postManagementService->getPosts($page, $limit);
             return new JsonResponse($this->serializer->serialize([
                 'status' => self::STATUS_SUCCESS,
                 'data' => $data,
@@ -62,6 +65,22 @@ class PostController extends ApiController
                 'status' => self::STATUS_SUCCESS,
                 'data' => $data,
             ], 'json'), Response::HTTP_CREATED, [], true);
+        } catch (Exception $e) {
+            return $this->internalServerErrorResponse(__METHOD__, $e);
+        }
+    }
+
+    #[Route('/api/posts/{id}', name: 'post_get', methods: ['GET'])]
+    public function getPostAction(string $id): Response
+    {
+        try {
+            $data = $this->postManagementService->getPost($id);
+            return new JsonResponse($this->serializer->serialize([
+                'status' => self::STATUS_SUCCESS,
+                'data' => $data,
+            ], 'json'), Response::HTTP_CREATED, [], true);
+        } catch (PostNotFoundException $e) {
+            return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
         } catch (Exception $e) {
             return $this->internalServerErrorResponse(__METHOD__, $e);
         }
