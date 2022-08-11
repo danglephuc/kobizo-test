@@ -2,9 +2,12 @@
 
 namespace App\Services\PostManagement;
 
+use App\Document\Meta;
 use App\Document\Post;
+use App\Dto\Request\MetaRequest;
 use App\Dto\Request\PostRequest;
 use App\Exception\PostNotFoundException;
+use App\Repository\MetaRepository;
 use App\Repository\PostRepository;
 use Doctrine\ODM\MongoDB\LockException;
 use Doctrine\ODM\MongoDB\Mapping\MappingException;
@@ -14,12 +17,15 @@ class PostManagementService
 {
 
     private PostRepository $postRepository;
+    private MetaRepository $metaRepository;
 
     public function __construct(
-        PostRepository $postRepository
+        PostRepository $postRepository,
+        MetaRepository $metaRepository,
     )
     {
         $this->postRepository = $postRepository;
+        $this->metaRepository = $metaRepository;
     }
 
     /**
@@ -50,7 +56,12 @@ class PostManagementService
      */
     public function getPosts(int $page, int $limit)
     {
-        return $this->postRepository->getPostsByPage($page, $limit);
+        $posts = $this->postRepository->getPostsByPage($page, $limit);
+        /** @var Post $post */
+        foreach ($posts['results'] as $post) {
+            $post->setMeta($this->metaRepository->getMetaByPostId($post->getId()));
+        }
+        return $posts;
     }
 
     /**
@@ -60,10 +71,23 @@ class PostManagementService
      */
     public function getPost(string $postId)
     {
+        /** @var Post $post */
         $post = $this->postRepository->find($postId);
         if (empty($post)) {
             throw new PostNotFoundException();
         }
+        $post->setMeta($this->metaRepository->getMetaByPostId($postId));
         return $post;
+    }
+
+    /**
+     * @param string $postId
+     * @param MetaRequest $requestDto
+     * @return Meta
+     * @throws MongoDBException
+     */
+    public function createPostMeta(string $postId, MetaRequest $requestDto)
+    {
+        return $this->metaRepository->createMeta($postId, $requestDto->getKey(), $requestDto->getValue());
     }
 }

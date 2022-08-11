@@ -72,6 +72,20 @@ export const PostTable = (props) => {
             }
         },
         {
+            label: 'Meta',
+            render: (row) => {
+                return <div className='flex flex-col'>
+                    {
+                        row.meta.map(function(meta, i){
+                            return <div key={i}>
+                                {meta.key} - {meta.value}
+                            </div>;
+                        })
+                    }
+                </div>
+            }
+        },
+        {
             label: 'Action',
             align: 'center',
             render: (row)=>{

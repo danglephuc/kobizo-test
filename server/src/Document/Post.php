@@ -3,6 +3,7 @@
 namespace App\Document;
 
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 use App\Repository\PostRepository;
 
@@ -26,6 +27,8 @@ class Post extends BaseDocument
      * @MongoDB\Field(type="int")
      */
     private ?int $status = null;
+
+    private ?array $meta = [];
 
     /**
      * @return string
@@ -80,6 +83,25 @@ class Post extends BaseDocument
     public function setStatus(int $status): self
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMeta(): array
+    {
+        return $this->meta;
+    }
+
+    /**
+     * @param array $meta
+     * @return self
+     */
+    public function setMeta(array $meta): self
+    {
+        $this->meta = $meta;
 
         return $this;
     }
