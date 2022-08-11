@@ -7,6 +7,7 @@ use App\Services\PostManagement\PostManagementService;
 use Doctrine\ODM\MongoDB\Mapping\MappingException;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Exception;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,22 +17,18 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PostController extends ApiController
 {
-
-    private SerializerInterface $serializer;
-
-    private ValidatorInterface $validator;
-
+    /** @var PostManagementService  */
     private PostManagementService $postManagementService;
 
     public function __construct(
-        SerializerInterface   $serializer,
-        ValidatorInterface    $validator,
+        SerializerInterface $serializer,
+        ValidatorInterface $validator,
+        LoggerInterface $logger,
         PostManagementService $postManagementService,
     )
     {
+        parent::__construct($serializer, $validator, $logger);
         $this->postManagementService = $postManagementService;
-        $this->serializer = $serializer;
-        $this->validator = $validator;
     }
 
     #[Route('/api/posts', name: 'post_list', methods: ['GET'])]

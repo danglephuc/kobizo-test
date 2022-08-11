@@ -3,11 +3,14 @@
 namespace App\Controller;
 
 use Exception;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ApiController extends AbstractController
 {
@@ -25,6 +28,25 @@ class ApiController extends AbstractController
     public const ERROR_CLIENT = 'CLIENT_ISSUE';
     // Error recognized as a server issue
     public const ERROR_SERVER = 'SERVER_ISSUE';
+
+    /** @var SerializerInterface */
+    protected SerializerInterface $serializer;
+
+    /** @var ValidatorInterface */
+    protected ValidatorInterface $validator;
+
+    /** @var LoggerInterface */
+    protected LoggerInterface $logger;
+
+    public function __construct(
+        SerializerInterface $serializer,
+        ValidatorInterface $validator,
+        LoggerInterface $logger)
+    {
+        $this->serializer = $serializer;
+        $this->validator = $validator;
+        $this->logger = $logger;
+    }
 
     /**
      * Generate a json error response for client-errors (bad request, unauthorized, etc).
@@ -67,8 +89,7 @@ class ApiController extends AbstractController
     {
         // Log error and return response with a unique error id for debugging
         $errorId = uniqid("", true);
-        // TODO
-        // Log::error("{$methodName}: errorId {$errorId}, message {$e->getMessage()}, stack {$e->getTraceAsString()}");
+        $this->logger->error("{$methodName}: errorId {$errorId}, message {$e->getMessage()}, stack {$e->getTraceAsString()}");
         return new JsonResponse([
             'status' => self::STATUS_FAILURE,
             'msg' => "Server error: {$errorId}.",

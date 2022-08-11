@@ -6,4 +6,5 @@ return [
     Fidry\PsyshBundle\PsyshBundle::class => ['dev' => true, 'test' => true],
     FOS\RestBundle\FOSRestBundle::class => ['all' => true],
     JMS\SerializerBundle\JMSSerializerBundle::class => ['all' => true],
+    Symfony\Bundle\MonologBundle\MonologBundle::class => ['all' => true],
 ];

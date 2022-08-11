@@ -82,6 +82,9 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/event-dispatcher-contracts" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/event-dispatcher" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/error-handler" />
+      <excludeFolder url="file://$MODULE_DIR$/server/vendor/symfony/monolog-bridge" />
+      <excludeFolder url="file://$MODULE_DIR$/server/vendor/symfony/monolog-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/server/vendor/monolog/monolog" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
