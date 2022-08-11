@@ -1,0 +1,15 @@
+@import 'element-theme-default';
+
+.el-loading-spinner {
+  .circular {
+    @apply mx-auto;
+  }
+}
+
+.el-table__body {
+  @apply w-full #{!important};
+}
+
+.btn-icon span {
+  @apply hidden;
+}

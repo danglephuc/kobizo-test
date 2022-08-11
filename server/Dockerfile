@@ -29,7 +29,7 @@ RUN pecl install mongodb \
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-COPY ".docker/php/php.ini-production" "$PHP_INI_DIR/php.ini"
+COPY "../.docker/php/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 # Set working directory
 WORKDIR /var/www

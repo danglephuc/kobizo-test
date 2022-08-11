@@ -1,15 +1,15 @@
 version: "3.7"
 services:
-  app:
+  server:
     build:
-      context: ./
+      context: ./server
       dockerfile: Dockerfile
     image: phucdl-test-img
-    container_name: phucdl-test-app
+    container_name: phucdl-test-server
     restart: unless-stopped
     working_dir: /var/www/
     volumes:
-      - ./:/var/www      
+      - ./server:/var/www
     networks:
       - phucdl_test
 
@@ -36,7 +36,7 @@ services:
     ports:
       - 8100:80
     volumes:
-      - ./:/var/www
+      - ./server:/var/www
       - ./.docker/nginx:/etc/nginx/conf.d/
     networks:
       - phucdl_test
