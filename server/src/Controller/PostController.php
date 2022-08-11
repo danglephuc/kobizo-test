@@ -3,6 +3,8 @@ namespace App\Controller;
 
 use App\Dto\Request\MetaRequest;
 use App\Dto\Request\PostRequest;
+use App\Exception\MetaNotBelongToPostException;
+use App\Exception\MetaNotFoundException;
 use App\Exception\PostNotFoundException;
 use App\Services\PostManagement\PostManagementService;
 use Doctrine\ODM\MongoDB\Mapping\MappingException;
@@ -33,7 +35,7 @@ class PostController extends ApiController
     }
 
     #[Route('/api/posts', name: 'post_list', methods: ['GET'])]
-    public function listPostsAction(Request $request)
+    public function listPostsAction(Request $request): Response
     {
         try {
             $page = (int)$request->query->get('page', 1);
@@ -129,33 +131,39 @@ class PostController extends ApiController
                 'status' => self::STATUS_SUCCESS,
                 'data' => $data,
             ], 'json'), Response::HTTP_CREATED, [], true);
+        } catch (PostNotFoundException $e) {
+            return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
         } catch (Exception $e) {
             return $this->internalServerErrorResponse(__METHOD__, $e);
         }
     }
 
-//    #[Route('/api/posts/{id}/meta', name: 'post_meta_update', methods: ['POST'])]
-//    public function updatePostMetaAction(Request $request): Response
-//    {
-//        try {
-//            /** @var MetaRequest $requestDto */
-//            $requestDto = $this->serializer->deserialize($request->getContent(), MetaRequest::class, 'json');
-//            $requestDto->setId($id);
-//            $errors = $this->validator->validate($requestDto, null, ['OpUpdate']);
-//
-//            if (count($errors) > 0) {
-//                return $this->clientValidationErrorResponse($errors);
-//            }
-//
-//            $data = $this->postManagementService->updatePost($requestDto);
-//            return new JsonResponse($this->serializer->serialize([
-//                'status' => self::STATUS_SUCCESS,
-//                'data' => $data,
-//            ], 'json'), Response::HTTP_CREATED, [], true);
-//        } catch (PostNotFoundException $e) {
-//            return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
-//        } catch (MappingException | MongoDBException | Exception $e) {
-//            return $this->internalServerErrorResponse(__METHOD__, $e);
-//        }
-//    }
+    #[Route('/api/posts/{postId}/meta/{id}', name: 'post_meta_update', methods: ['POST'])]
+    public function updatePostMetaAction(Request $request, $postId, $id): Response
+    {
+        try {
+            /** @var MetaRequest $requestDto */
+            $requestDto = $this->serializer->deserialize($request->getContent(), MetaRequest::class, 'json');
+            $requestDto->setId($id);
+            $errors = $this->validator->validate($requestDto, null, ['OpUpdate']);
+
+            if (count($errors) > 0) {
+                return $this->clientValidationErrorResponse($errors);
+            }
+
+            $data = $this->postManagementService->updatePostMeta($postId, $requestDto);
+            return new JsonResponse($this->serializer->serialize([
+                'status' => self::STATUS_SUCCESS,
+                'data' => $data,
+            ], 'json'), Response::HTTP_CREATED, [], true);
+        } catch (PostNotFoundException $e) {
+            return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
+        } catch (MetaNotFoundException $e) {
+            return $this->clientErrorResponse("Meta Not Found", Response::HTTP_NOT_FOUND, 'errors.meta_not_found');
+        } catch (MetaNotBelongToPostException $e) {
+            return $this->clientErrorResponse("Meta Not Belong To Post", Response::HTTP_NOT_FOUND, 'errors.meta_not_belong_to_post');
+        } catch (Exception $e) {
+            return $this->internalServerErrorResponse(__METHOD__, $e);
+        }
+    }
 }

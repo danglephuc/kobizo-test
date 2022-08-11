@@ -6,6 +6,8 @@ use App\Document\Meta;
 use App\Document\Post;
 use App\Dto\Request\MetaRequest;
 use App\Dto\Request\PostRequest;
+use App\Exception\MetaNotBelongToPostException;
+use App\Exception\MetaNotFoundException;
 use App\Exception\PostNotFoundException;
 use App\Repository\MetaRepository;
 use App\Repository\PostRepository;
@@ -54,7 +56,7 @@ class PostManagementService
      * @return array
      * @throws MongoDBException
      */
-    public function getPosts(int $page, int $limit)
+    public function getPosts(int $page, int $limit): array
     {
         $posts = $this->postRepository->getPostsByPage($page, $limit);
         /** @var Post $post */
@@ -69,7 +71,7 @@ class PostManagementService
      * @throws LockException
      * @throws PostNotFoundException
      */
-    public function getPost(string $postId)
+    public function getPost(string $postId): Post
     {
         /** @var Post $post */
         $post = $this->postRepository->find($postId);
@@ -85,9 +87,35 @@ class PostManagementService
      * @param MetaRequest $requestDto
      * @return Meta
      * @throws MongoDBException
+     * @throws PostNotFoundException
+     * @throws MappingException
      */
-    public function createPostMeta(string $postId, MetaRequest $requestDto)
+    public function createPostMeta(string $postId, MetaRequest $requestDto): Meta
     {
+        $post = $this->postRepository->find($postId);
+        if (empty($post)) {
+            throw new PostNotFoundException();
+        }
         return $this->metaRepository->createMeta($postId, $requestDto->getKey(), $requestDto->getValue());
+    }
+
+    /**
+     * @param string $postId
+     * @param MetaRequest $requestDto
+     * @return Meta
+     * @throws LockException
+     * @throws MappingException
+     * @throws MongoDBException
+     * @throws PostNotFoundException
+     * @throws MetaNotFoundException
+     * @throws MetaNotBelongToPostException
+     */
+    public function updatePostMeta(string $postId, MetaRequest $requestDto): Meta
+    {
+        $post = $this->postRepository->find($postId);
+        if (empty($post)) {
+            throw new PostNotFoundException();
+        }
+        return $this->metaRepository->updateMeta($postId, $requestDto->getId(), $requestDto->getKey(), $requestDto->getValue());
     }
 }

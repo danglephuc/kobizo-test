@@ -18,3 +18,11 @@ export const getPost = async (postId) => {
 export const updatePost = async (postId, postData) => {
     return requestPost(`${process.env.REACT_APP_BASE_URL}/api/posts/${postId}`, postData);
 }
+
+export const createPostMeta = async (postId, metaData) => {
+    return requestPost(`${process.env.REACT_APP_BASE_URL}/api/posts/${postId}/meta`, metaData);
+}
+
+export const updatePostMeta = async (postId, metaId, metaData) => {
+    return requestPost(`${process.env.REACT_APP_BASE_URL}/api/posts/${postId}/meta/${metaId}`, metaData);
+}
