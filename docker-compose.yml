@@ -55,6 +55,19 @@ services:
     networks:
       - phucdl_test
 
+  cors-anywhere:
+    build:
+      context: ./cors-anywhere
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - 8300:8080
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./cors-anywhere:/home/node
+      - /home/node/node_modules
+
 volumes:
   phucdl_test_mongodb:
 networks:

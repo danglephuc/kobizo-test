@@ -17,7 +17,7 @@ const RssViewer = () => {
   const fetchRss = async (url) => {
     try {
       setLoading(true);
-      const rss = await parse(`https://cors-anywhere.herokuapp.com/${url}`);
+      const rss = await parse(`${process.env.REACT_APP_CORS_URL}/${url}`);
       setRssData(rss);
     } catch (e) {
       console.error(e);
