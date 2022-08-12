@@ -4,12 +4,24 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
-    image: phucdl-test-img
+    image: phucdl-test-server-img
     container_name: phucdl-test-server
     restart: unless-stopped
     working_dir: /var/www/
     volumes:
       - ./server:/var/www
+    networks:
+      - phucdl_test
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: phucdl-test-client-img
+    container_name: phucdl-test-client
+    volumes:
+      - ./client:/app
+      - /app/node_modules
     networks:
       - phucdl_test
 
@@ -35,13 +47,15 @@ services:
     restart: unless-stopped
     ports:
       - 8100:80
+      - 8200:81
     volumes:
       - ./server:/var/www
       - ./.docker/nginx:/etc/nginx/conf.d/
+      - ./.docker/nginx/nginx.htpasswd:/etc/nginx/conf.d/nginx.htpasswd:ro
     networks:
       - phucdl_test
 
-volumes:  
+volumes:
   phucdl_test_mongodb:
 networks:
   phucdl_test:

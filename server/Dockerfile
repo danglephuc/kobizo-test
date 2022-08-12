@@ -10,10 +10,11 @@ RUN apt-get update && apt-get install -y \
     curl \
     libonig-dev \
     libxml2-dev \
-	  libzip-dev \
+	libzip-dev \
     zip \
     unzip \
-	  libssl-dev \
+	libssl-dev \
+	dos2unix \
     sudo
 
 # Clear cache
@@ -29,7 +30,11 @@ RUN pecl install mongodb \
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-COPY "../.docker/php/php.ini-production" "$PHP_INI_DIR/php.ini"
+COPY .docker/php.ini-production /usr/local/etc/php/php.ini
+COPY .docker/entrypoint.sh /entrypoint.sh
+RUN dos2unix /entrypoint.sh
 
 # Set working directory
 WORKDIR /var/www
+
+ENTRYPOINT ["/entrypoint.sh"]
