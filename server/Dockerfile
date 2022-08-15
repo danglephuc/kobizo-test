@@ -33,6 +33,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY .docker/php.ini-production /usr/local/etc/php/php.ini
 COPY .docker/entrypoint.sh /entrypoint.sh
 RUN dos2unix /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Set working directory
 WORKDIR /var/www
