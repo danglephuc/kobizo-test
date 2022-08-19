@@ -86,6 +86,7 @@
       <excludeFolder url="file://$MODULE_DIR$/server/vendor/symfony/monolog-bundle" />
       <excludeFolder url="file://$MODULE_DIR$/server/vendor/monolog/monolog" />
       <excludeFolder url="file://$MODULE_DIR$/server/vendor/nelmio/cors-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/server/vendor/sensio/framework-extra-bundle" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

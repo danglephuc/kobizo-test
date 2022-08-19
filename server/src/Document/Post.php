@@ -6,6 +6,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 use App\Repository\PostRepository;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @MongoDB\Document(collection="post", repositoryClass=PostRepository::class)
@@ -14,21 +15,36 @@ use App\Repository\PostRepository;
 class Post extends BaseDocument
 {
     /**
+     * @Groups({"default", "post"})
      * @MongoDB\Field(type="string")
      */
     private ?string $title = null;
 
     /**
+     * @Groups({"default", "post"})
      * @MongoDB\Field(type="string")
      */
     private ?string $content = null;
 
     /**
+     * @Groups({"default", "post"})
      * @MongoDB\Field(type="int")
      */
     private ?int $status = null;
 
-    private ?array $meta = [];
+    /**
+     * @Groups("post_meta")
+     * @MongoDB\ReferenceMany(targetDocument=Meta::class, mappedBy="post")
+     */
+    private ArrayCollection $meta;
+
+    /**
+     * Post constructor.
+     */
+    public function __construct()
+    {
+        $this->meta = new ArrayCollection();
+    }
 
     /**
      * @return string
@@ -40,6 +56,7 @@ class Post extends BaseDocument
 
     /**
      * @param string $title
+     *
      * @return self
      */
     public function setTitle(string $title): self
@@ -59,6 +76,7 @@ class Post extends BaseDocument
 
     /**
      * @param string $content
+     *
      * @return self
      */
     public function setContent(string $content): self
@@ -78,6 +96,7 @@ class Post extends BaseDocument
 
     /**
      * @param int $status
+     *
      * @return self
      */
     public function setStatus(int $status): self
@@ -88,20 +107,21 @@ class Post extends BaseDocument
     }
 
     /**
-     * @return array
+     * @return ArrayCollection
      */
-    public function getMeta(): array
+    public function getMeta(): ArrayCollection
     {
         return $this->meta;
     }
 
     /**
      * @param array $meta
+     *
      * @return self
      */
     public function setMeta(array $meta): self
     {
-        $this->meta = $meta;
+        $this->meta = new ArrayCollection($meta);
 
         return $this;
     }

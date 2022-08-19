@@ -154,6 +154,7 @@
       <path value="$PROJECT_DIR$/server/vendor/symfony/monolog-bundle" />
       <path value="$PROJECT_DIR$/server/vendor/monolog/monolog" />
       <path value="$PROJECT_DIR$/server/vendor/nelmio/cors-bundle" />
+      <path value="$PROJECT_DIR$/server/vendor/sensio/framework-extra-bundle" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.0" />

@@ -38,4 +38,4 @@ RUN chmod +x /entrypoint.sh
 # Set working directory
 WORKDIR /var/www
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["sh", "/entrypoint.sh"]

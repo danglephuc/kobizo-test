@@ -4,6 +4,7 @@ namespace App\Document;
 
 use DateTime;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @MongoDB\Document
@@ -12,6 +13,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 class BaseDocument
 {
     /**
+     * @Groups("default")
      * @MongoDB\Id
      */
     private ?string $id = null;
@@ -25,11 +27,13 @@ class BaseDocument
     }
 
     /**
+     * @Groups("default")
      * @MongoDB\Field(type="date")
      */
     private ?DateTime $created_at = null;
 
     /**
+     * @Groups("default")
      * @MongoDB\Field(type="date")
      */
     private ?DateTime $updated_at = null;

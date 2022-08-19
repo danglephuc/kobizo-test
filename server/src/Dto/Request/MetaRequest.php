@@ -9,18 +9,6 @@ class MetaRequest
     /**
      * @var string
      *
-     * @Assert\IsNull(
-     *     groups={"OpCreate"},
-     * )
-     * @Assert\NotNull(
-     *     groups={"OpUpdate"},
-     * )
-     */
-    private string $id;
-
-    /**
-     * @var string
-     *
      * @Assert\NotBlank(
      *     groups={"OpCreate", "OpUpdate"},
      * )
@@ -35,18 +23,6 @@ class MetaRequest
      * )
      */
     private string $value;
-
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    public function setId(string $id): self
-    {
-        $this->id = $id;
-
-        return $this;
-    }
 
     public function getKey(): string
     {

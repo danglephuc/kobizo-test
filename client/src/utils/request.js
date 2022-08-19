@@ -48,3 +48,26 @@ export async function requestPost(url, data = {}, config = {}) {
     }
   }
 }
+
+export async function requestPut(url, data = {}, config = {}) {
+  try {
+    const res = await axios.put(url, data, config);
+    return res.data;
+  } catch (error) {
+    if (error.response) {
+      if (error.response.data) {
+        return error.response.data;
+      } else {
+        return {
+          status: 0,
+          msg: error.response.statusText,
+        };
+      }
+    } else {
+      return {
+        status: 0,
+        msg: error,
+      };
+    }
+  }
+}

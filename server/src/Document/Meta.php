@@ -5,6 +5,7 @@ namespace App\Document;
 use DateTime;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 use App\Repository\MetaRepository;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @MongoDB\Document(collection="meta", repositoryClass=MetaRepository::class)
@@ -13,38 +14,22 @@ use App\Repository\MetaRepository;
 class Meta extends BaseDocument
 {
     /**
-     * @MongoDB\Field(type="string")
-     */
-    private ?string $post_id = null;
-
-    /**
+     * @Groups({"default", "meta"})
      * @MongoDB\Field(type="string")
      */
     private ?string $key = null;
 
     /**
+     * @Groups({"default", "meta"})
      * @MongoDB\Field(type="string")
      */
     private ?string $value = null;
 
     /**
-     * @return string
+     * @Groups({"meta_post"})
+     * @MongoDB\ReferenceOne(targetDocument=Post::class, inversedBy="meta")
      */
-    public function getPostId(): string
-    {
-        return $this->post_id;
-    }
-
-    /**
-     * @param string $postId
-     * @return self
-     */
-    public function setPostId(string $postId): self
-    {
-        $this->post_id = $postId;
-
-        return $this;
-    }
+    protected ?Post $post;
 
     /**
      * @return string
@@ -56,6 +41,7 @@ class Meta extends BaseDocument
 
     /**
      * @param string $key
+     *
      * @return self
      */
     public function setKey(string $key): self
@@ -75,6 +61,7 @@ class Meta extends BaseDocument
 
     /**
      * @param string $value
+     *
      * @return self
      */
     public function setValue(string $value): self
@@ -82,5 +69,25 @@ class Meta extends BaseDocument
         $this->value = $value;
 
         return $this;
+    }
+
+    /**
+     * @param Post $post
+     *
+     * @return $this
+     */
+    public function setPost(Post $post): self
+    {
+        $this->post = $post;
+
+        return $this;
+    }
+
+    /**
+     * @return Post|null
+     */
+    public function getPost(): ?Post
+    {
+        return $this->post;
     }
 }

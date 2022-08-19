@@ -1,4 +1,4 @@
-import { requestGet, requestPost } from "../utils/request";
+import { requestGet, requestPost, requestPut } from "../utils/request";
 
 export const getListPosts = async (page, limit) => {
   return requestGet(`${process.env.REACT_APP_BASE_URL}/api/posts`, {
@@ -16,7 +16,7 @@ export const getPost = async (postId) => {
 };
 
 export const updatePost = async (postId, postData) => {
-  return requestPost(
+  return requestPut(
     `${process.env.REACT_APP_BASE_URL}/api/posts/${postId}`,
     postData
   );
@@ -30,7 +30,7 @@ export const createPostMeta = async (postId, metaData) => {
 };
 
 export const updatePostMeta = async (postId, metaId, metaData) => {
-  return requestPost(
+  return requestPut(
     `${process.env.REACT_APP_BASE_URL}/api/posts/${postId}/meta/${metaId}`,
     metaData
   );

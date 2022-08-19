@@ -1,13 +1,11 @@
 <?php
 namespace App\Controller;
 
+use App\Document\Meta;
+use App\Document\Post;
 use App\Dto\Request\MetaRequest;
 use App\Dto\Request\PostRequest;
-use App\Exception\MetaNotBelongToPostException;
-use App\Exception\MetaNotFoundException;
-use App\Exception\PostNotFoundException;
-use App\Services\PostManagement\PostManagementService;
-use Doctrine\ODM\MongoDB\Mapping\MappingException;
+use App\Services\PostService;
 use Doctrine\ODM\MongoDB\MongoDBException;
 use Exception;
 use Psr\Log\LoggerInterface;
@@ -17,21 +15,22 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 class PostController extends ApiController
 {
-    /** @var PostManagementService  */
-    private PostManagementService $postManagementService;
+    /** @var PostService  */
+    private PostService $postService;
 
     public function __construct(
         SerializerInterface $serializer,
         ValidatorInterface $validator,
         LoggerInterface $logger,
-        PostManagementService $postManagementService,
+        PostService $postService,
     )
     {
         parent::__construct($serializer, $validator, $logger);
-        $this->postManagementService = $postManagementService;
+        $this->postService = $postService;
     }
 
     #[Route('/api/posts', name: 'post_list', methods: ['GET'])]
@@ -41,13 +40,12 @@ class PostController extends ApiController
             $page = (int)$request->query->get('page', 1);
             $limit = (int)$request->query->get('limit', 10);
 
-            $data = $this->postManagementService->getPosts($page, $limit);
+            $data = $this->postService->getPosts($page, $limit);
             return new JsonResponse($this->serializer->serialize([
                 'status' => self::STATUS_SUCCESS,
                 'data' => $data,
-            ], 'json'), Response::HTTP_OK, [], true);
+            ], 'json', ['groups' => ['default', 'post_meta']]), Response::HTTP_OK, [], true);
         } catch (Exception $e) {
-            var_dump($e);
             return $this->internalServerErrorResponse(__METHOD__, $e);
         }
     }
@@ -63,62 +61,71 @@ class PostController extends ApiController
                 return $this->clientValidationErrorResponse($errors);
             }
 
-            $data = $this->postManagementService->createPost($requestDto);
+            $data = $this->postService->createPost($requestDto);
             return new JsonResponse($this->serializer->serialize([
                 'status' => self::STATUS_SUCCESS,
                 'data' => $data,
-            ], 'json'), Response::HTTP_CREATED, [], true);
+            ], 'json', ['groups' => ['default', 'post_meta']]), Response::HTTP_CREATED, [], true);
         } catch (Exception $e) {
             return $this->internalServerErrorResponse(__METHOD__, $e);
         }
     }
 
+    /**
+     * @param Post|null $post
+     * @return Response
+     */
     #[Route('/api/posts/{id}', name: 'post_get', methods: ['GET'])]
-    public function getPostAction(string $id): Response
+    public function getPostAction(Post $post = null): Response
     {
         try {
-            $data = $this->postManagementService->getPost($id);
+            if (!$post) {
+                return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
+            }
+
             return new JsonResponse($this->serializer->serialize([
                 'status' => self::STATUS_SUCCESS,
-                'data' => $data,
-            ], 'json'), Response::HTTP_CREATED, [], true);
-        } catch (PostNotFoundException $e) {
-            return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
+                'data' => $post,
+            ], 'json', ['groups' => ['default', 'post_meta']]), Response::HTTP_CREATED, [], true);
         } catch (Exception $e) {
-            var_dump($e);
             return $this->internalServerErrorResponse(__METHOD__, $e);
         }
     }
 
-    #[Route('/api/posts/{id}', name: 'post_update', methods: ['POST'])]
-    public function updatePostAction(Request $request, string $id): Response
+    #[Route('/api/posts/{id}', name: 'post_update', methods: ['PUT'])]
+    public function updatePostAction(Request $request, Post $post = null): Response
     {
         try {
+            if (!$post) {
+                return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
+            }
+
             /** @var PostRequest $requestDto */
             $requestDto = $this->serializer->deserialize($request->getContent(), PostRequest::class, 'json');
-            $requestDto->setId($id);
-            $errors = $this->validator->validate($requestDto, null, ['OpUpdate']);
+            $errors = $this->validator->validate($requestDto, null, ['OpCreate']);
 
             if (count($errors) > 0) {
                 return $this->clientValidationErrorResponse($errors);
             }
 
-            $data = $this->postManagementService->updatePost($requestDto);
+            $data = $this->postService->updatePost($post, $requestDto);
             return new JsonResponse($this->serializer->serialize([
                 'status' => self::STATUS_SUCCESS,
                 'data' => $data,
-            ], 'json'), Response::HTTP_CREATED, [], true);
-        } catch (PostNotFoundException $e) {
-            return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
-        } catch (MappingException | MongoDBException | Exception $e) {
+            ], 'json', ['groups' => ['default', 'post_meta']]), Response::HTTP_OK, [], true);
+        } catch (MongoDBException | Exception $e) {
             return $this->internalServerErrorResponse(__METHOD__, $e);
         }
     }
 
     #[Route('/api/posts/{postId}/meta', name: 'post_meta_create', methods: ['POST'])]
-    public function createPostMetaAction(Request $request, $postId): Response
+    public function createPostMetaAction(Request $request, Post $post): Response
     {
         try {
+            if (!$post) {
+                return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
+            }
+
             $requestDto = $this->serializer->deserialize($request->getContent(), MetaRequest::class, 'json');
             $errors = $this->validator->validate($requestDto, null, ['OpCreate']);
 
@@ -126,42 +133,51 @@ class PostController extends ApiController
                 return $this->clientValidationErrorResponse($errors);
             }
 
-            $data = $this->postManagementService->createPostMeta($postId, $requestDto);
+            $data = $this->postService->createPostMeta($post, $requestDto);
             return new JsonResponse($this->serializer->serialize([
                 'status' => self::STATUS_SUCCESS,
                 'data' => $data,
-            ], 'json'), Response::HTTP_CREATED, [], true);
-        } catch (PostNotFoundException $e) {
-            return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
+            ], 'json', ['groups' => ['default', 'meta_post']]), Response::HTTP_CREATED, [], true);
         } catch (Exception $e) {
             return $this->internalServerErrorResponse(__METHOD__, $e);
         }
     }
 
-    #[Route('/api/posts/{postId}/meta/{id}', name: 'post_meta_update', methods: ['POST'])]
-    public function updatePostMetaAction(Request $request, $postId, $id): Response
+    /**
+     * @param Request $request
+     * @param Post|null $post
+     * @param Meta|null $meta
+     *
+     * @return Response
+     * @ParamConverter("meta", options={"id" = "meta_id"})
+     */
+    #[Route('/api/posts/{id}/meta/{meta_id}', name: 'post_meta_update', methods: ['PUT'])]
+    public function updatePostMetaAction(Request $request, Post $post = null, Meta $meta = null): Response
     {
         try {
+            if (!$post) {
+                return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
+            }
+            if (!$meta) {
+                return $this->clientErrorResponse("Meta Not Found", Response::HTTP_NOT_FOUND, 'errors.meta_not_found');
+            }
+            if ($meta->getPost()->getId() !== $post->getId()) {
+                return $this->clientErrorResponse("Meta Not Belong To Post", Response::HTTP_NOT_FOUND, 'errors.meta_not_belong_to_post');
+            }
+
             /** @var MetaRequest $requestDto */
             $requestDto = $this->serializer->deserialize($request->getContent(), MetaRequest::class, 'json');
-            $requestDto->setId($id);
-            $errors = $this->validator->validate($requestDto, null, ['OpUpdate']);
+            $errors = $this->validator->validate($requestDto, null, ['OpCreate']);
 
             if (count($errors) > 0) {
                 return $this->clientValidationErrorResponse($errors);
             }
 
-            $data = $this->postManagementService->updatePostMeta($postId, $requestDto);
+            $data = $this->postService->updatePostMeta($meta, $requestDto);
             return new JsonResponse($this->serializer->serialize([
                 'status' => self::STATUS_SUCCESS,
                 'data' => $data,
-            ], 'json'), Response::HTTP_CREATED, [], true);
-        } catch (PostNotFoundException $e) {
-            return $this->clientErrorResponse("Post Not Found", Response::HTTP_NOT_FOUND, 'errors.post_not_found');
-        } catch (MetaNotFoundException $e) {
-            return $this->clientErrorResponse("Meta Not Found", Response::HTTP_NOT_FOUND, 'errors.meta_not_found');
-        } catch (MetaNotBelongToPostException $e) {
-            return $this->clientErrorResponse("Meta Not Belong To Post", Response::HTTP_NOT_FOUND, 'errors.meta_not_belong_to_post');
+            ], 'json', ['groups' => ['default', 'meta_post']]), Response::HTTP_OK, [], true);
         } catch (Exception $e) {
             return $this->internalServerErrorResponse(__METHOD__, $e);
         }
